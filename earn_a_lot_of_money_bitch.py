@@ -25,7 +25,7 @@ class Trade:
             'USDCet': '0x5e156f1207d0ebfa19a9eeff00d62a282278fb8719f4fab3a586a0a2c0fffbea::coin::T'
         }
         self.my_dict = {}
-        self.resources = []
+        self.resources = {}
 
     def get_resources(self):
         self.resp = requests.get(self.url, headers=self.headers)
@@ -57,15 +57,17 @@ class Trade:
                                     x_key = keys[1]
                                 self.get_resource(resource_type[0], x_key, y_key)
 
-                                self.resources.append(resource_type[0])  # сохраняем для повторного запуска
+                                self.resources[resource_type[0]] = [x_key, y_key]  # сохраняем для повторного запуска
                                 break
                     counter = 0
                     keys.clear()
-
+        while True:
+            for k, v in self.resources.items():
+                self.get_resource(k, v[0], v[1])
+                print(self.my_dict)
     def get_resource(self, resource_type, x_token, y_token):
         url = f"https://aptos-mainnet.nodereal.io/v1/{self.api_key}/v1/accounts/{self.address}/resource/{resource_type}"
         resp = requests.get(url, headers=self.headers)
 
         if 'data' in resp.json():
             self.my_dict[f'{x_token}_{y_token}'] = {'reserve_x': resp.json()['data']['reserve_x'], 'reserve_y': resp.json()['data']['reserve_y']}
-            print(self.my_dict)
