@@ -55,19 +55,27 @@ class Trade:
                                     y_key = keys[1]
                                 elif self.tokens[keys[1]] == x_coin:
                                     x_key = keys[1]
-                                self.get_resource(resource_type[0], x_key, y_key)
+                                self.get_resource(resource_type[0], x_key, y_key, False)
 
-                                self.resources[resource_type[0]] = [x_key, y_key]  # сохраняем для повторного запуска
+                                self.resources[f'{x_key}_{y_key}'] = resource_type[0]  # сохраняем для повторного
+                                # запуска
                                 break
                     counter = 0
                     keys.clear()
-        while True:
-            for k, v in self.resources.items():
-                self.get_resource(k, v[0], v[1])
-                print(self.my_dict)
-    def get_resource(self, resource_type, x_token, y_token):
+
+    def check_tokens(self, x_token, y_token):
+        if f'{x_token}_{y_token}' in self.resources:
+            resource_type = self.resources[f'{x_token}_{y_token}']
+            pair = self.get_resource(resource_type, x_token, y_token, True)
+            return pair
+
+    def get_resource(self, resource_type, x_token, y_token, out):
         url = f"https://aptos-mainnet.nodereal.io/v1/{self.api_key}/v1/accounts/{self.address}/resource/{resource_type}"
         resp = requests.get(url, headers=self.headers)
 
         if 'data' in resp.json():
-            self.my_dict[f'{x_token}_{y_token}'] = {'reserve_x': resp.json()['data']['reserve_x'], 'reserve_y': resp.json()['data']['reserve_y']}
+            self.my_dict[f'{x_token}_{y_token}'] = {'reserve_x': resp.json()['data']['reserve_x'],
+                                                    'reserve_y': resp.json()['data']['reserve_y']}
+            if out:
+                return self.my_dict[f'{x_token}_{y_token}']
+
